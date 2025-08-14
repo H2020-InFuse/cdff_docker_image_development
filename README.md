@@ -33,7 +33,24 @@ Finally the **release image** is a stripped down image that does not include the
 
 ![process overview](/doc/docker_development_image.png?raw=true "process overview")
 
+## Features
 
+Features are accessible through the settings.bash file
+
+* XServer - Graphical programs
+  * 3d acceleration (only for nvidia cards)
+  * GUIs on remote mashines
+    *  Ssh -X tunnels to containers on remote machines (use ssh -X to connect a machine whre a GUI runs in a docker)
+    *  Or automated launch of an xpra server in the container
+* Use the hosts ssh-agent in the container (no need to copy, mount or create an key in the container for e.g. ssh checkouts)
+* Creating images from workspaces (e.g. to save a runnable version of a  successful demo)
+* Shares the settings/image names through a common git repo, 
+* ccache and icecc support (compiler cache and distributed compilation)
+* docker in docker
+* Mouting the complete container filesystem on the host (needs sudo on startup)
+  * To be used for profiling with perf/hotspot on the host
+
+For more information see comment sin setting.bash 
 
 ## Getting Started
 
