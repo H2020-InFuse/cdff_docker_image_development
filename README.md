@@ -26,7 +26,10 @@ The build process will automatically try to pull required images from a docker r
 If the image is already available locally, it doesn't need to be pulled again.
 
 Another goal of this approach is to be able to preserve a working version of a component, a project or a demo and possibly ship it to external partners.
-In order to achieve this, the **release image** can be created, which contains the devel image plus the additional workspace files and run scripts required to operate the product.
+In order to achieve this, the **frozen image** can be created, which contains the devel image plus the additional workspace files and run scripts required to operate the product.
+This frozen image can contain all files for development (source code, compilers, etc), but may be exclude files by using the .dockerignore file.
+
+Finally the **release image** is a stripped down image that does not include the installed programs used for development. It consists a minimal base image, like ubuntu:24.04, and only executables together with their linked libreries.
 
 ![process overview](/doc/docker_development_image.png?raw=true "process overview")
 
