@@ -47,6 +47,12 @@ if [ ! -f /opt/workspace/env.sh ]; then
 
     ruby autoproj_bootstrap --bundler-version=2.9.2 git $BUILDCONF branch=$BRANCH --no-color --no-interactive
     source env.sh
+
+    # Pin facets < 3.2.0: facets-3.2.0 removed kernel/constant.rb which utilrb-3.0.1 requires.
+    # Without this, autoproj fails to load after bootstrap.
+    echo 'gem "facets", "< 3.2.0"' >> /opt/workspace/.autoproj/Gemfile
+    BUNDLE_GEMFILE=/opt/workspace/.autoproj/Gemfile bundle update facets --quiet
+
     aup --no-color --no-interactive
     amake
 
