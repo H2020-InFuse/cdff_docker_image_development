@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # set a project name, no empty spaces or special characters allowed
-export PROJECT_NAME=docker_image_development
+export PROJECT_NAME=cdff
 
 # path to your docker registry, leave blank if you don't have one
 # e.g. my.registry.com, ghcr.io/dfki-ric, docker.pkg.github.com, harbor.mydomain.com
-export DOCKER_REGISTRY=
+export DOCKER_REGISTRY=d-reg.hb.dfki.de
 # When your registry has subfolders/groups you can add it here 
 export DOCKER_REGISTRY_GROUP=developmentimage
 
@@ -28,8 +28,8 @@ export DOCKER_REGISTRY_AUTOPULL=false
 
 ### The default release mode to use if no mode paramater is given to ./exec.bash or ./stop.bash
 ### The checked in version should reflect the image status and be the highest availale image (base - devel - release)
-export DEFAULT_EXECMODE="base" # Use this only for setting up the initial devel image (modify setup_workspace.bash)
-# export DEFAULT_EXECMODE="devel" # This is used while deveoping code and preparing a relase
+# export DEFAULT_EXECMODE="base" # Use this only for setting up the initial devel image (modify setup_workspace.bash)
+export DEFAULT_EXECMODE="devel" # This is used while deveoping code and preparing a relase
 # export DEFAULT_EXECMODE="frozen" # use the release as default
 # export DEFAULT_EXECMODE="release" # use the release as default
 # export DEFAULT_EXECMODE="CD" # use the continuous deployment image as default
@@ -37,13 +37,13 @@ export DEFAULT_EXECMODE="base" # Use this only for setting up the initial devel 
 ### The base image used when building a workspace image (one of the ones build in base_images)
 # export WORKSPACE_BASE_IMAGE=developmentimage/rock_master_20.04:base # image with rock core dependencies installed
 # export WORKSPACE_BASE_IMAGE=developmentimage/rock_master_22.04:base # image with rock core dependencies installed
-# export WORKSPACE_BASE_IMAGE=developmentimage/rock_master_24.04:base # image with rock core dependencies installed
+export WORKSPACE_BASE_IMAGE=developmentimage/rock_master_24.04:base # image with rock core dependencies installed
 # export WORKSPACE_BASE_IMAGE=developmentimage/ros_noetic_20.04:base # image with basic ros noetic installed
 # export WORKSPACE_BASE_IMAGE=developmentimage/ros2_foxy_20.04:base # image with ros2 foxy desktop installed
 # export WORKSPACE_BASE_IMAGE=developmentimage/ros2_humble_22.04:base # image with ros2 humble desktop installed
 # export WORKSPACE_BASE_IMAGE=developmentimage/ros2_jazzy_24.04:base # image with ros2 humble desktop installed
 # export WORKSPACE_BASE_IMAGE=developmentimage/plain_20.04:base # plain image with build_essentials installed
-export WORKSPACE_BASE_IMAGE=developmentimage/plain_22.04:base # plain image with build_essentials installed
+# export WORKSPACE_BASE_IMAGE=developmentimage/plain_22.04:base # plain image with build_essentials installed
 # export WORKSPACE_BASE_IMAGE=developmentimage/plain_24.04:base # plain image with build_essentials installed
 
 # The Name of the Workspace image to use
@@ -63,7 +63,13 @@ export WORKSPACE_CD_IMAGE=${CD_REGISTRY_GROUP}/${PROJECT_NAME}:CD
 # --dns-search=mydomain
 # --net=host
 # --privileged
-export ADDITIONAL_DOCKER_RUN_ARGS=""
+export ADDITIONAL_DOCKER_RUN_ARGS="
+    --privileged \
+    --net=host \
+    -e NVIDIA_DRIVER_CAPABILITIES=all \
+    --dns-search=dfki.uni-bremen.de \
+    -v /dev:/dev 
+"
 
 
 # List of system services to be started in the container
@@ -126,3 +132,9 @@ export NEEDS_DOCKER_IN_CONTAINER=false
 # needs bindfs installed on the host
 export MOUNT_CONTAINER_ROOT=false
 
+PATH_TO_COYOTE_LOGS_IN_HOST="/media/rdominguez/SSDRD1/Datasets_Logs/minio_clones/dfki_coyote_minio"
+#PATH_TO_COYOTE_LOGS_IN_HOST=""
+if [ -d "$PATH_TO_COYOTE_LOGS_IN_HOST" ]; then
+    # echo "Adding mount of SLAM LUNA logs from host (not minio): $PATH_TO_COYOTE_LOGS_IN_HOST"
+    export ADDITIONAL_DOCKER_RUN_ARGS="$ADDITIONAL_DOCKER_RUN_ARGS    -v $PATH_TO_COYOTE_LOGS_IN_HOST:/dfki_coyote_minio"
+fi

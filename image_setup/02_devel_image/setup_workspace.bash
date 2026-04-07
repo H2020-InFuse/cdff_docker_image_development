@@ -5,8 +5,8 @@
 # stop on errors
 set -e
 
-BUILDCONF=
-BRANCH=
+BUILDCONF=https://github.com/H2020-InFuse/cdff-buildconf.git
+BRANCH="2026_restart"
 
 if [ ! $1 = "" ]; then
    echo "overriding git credential helper to $1"
@@ -21,29 +21,40 @@ CREDENTIAL_HELPER_MODE=${CREDENTIAL_HELPER_MODE:="cache"}
 
 # ROCK BUILDCONF EXAMPLE (non-interactive)
 #
-#if [ ! -f /opt/workspace/env.sh ]; then
-#    echo -e "\e[32m[INFO] First start: setting up the workspace.\e[0m"
-#
-#    # go to workspace dir
-#    cd /opt/workspace/
-#
-#    # set git config
-#    git config --global user.name "Image Builder"
-#    git config --global user.email "image@builder.me"
-#    git config --global credential.helper ${CREDENTIAL_HELPER_MODE}
-#
-#    # setup ws using autoproj
-#    wget rock-robotics.org/autoproj_bootstrap
-#    ruby autoproj_bootstrap git $BUILDCONF branch=$BRANCH --seed-config=/opt/config_seed.yml --no-color --no-interactive
-#    source env.sh
-#    aup --no-color --no-interactive
-#    amake
-#
-#    echo -e "\e[32m[INFO] workspace successfully initialized.\e[0m"
-#else 
-#    echo -e "\e[31m[ERROR] workspace already initialized.\e[0m"
-#    exit 1
-#fi
+if [ ! -f /opt/workspace/env.sh ]; then
+    echo -e "\e[32m[INFO] First start: setting up the workspace.\e[0m"
+
+    # go to workspace dir
+    cd /opt/workspace/
+
+    # set git config
+    git config --global user.name "Image Builder"
+    git config --global user.email "image@builder.me"
+    git config --global credential.helper ${CREDENTIAL_HELPER_MODE}
+
+    # setup ws using autoproj
+    # Note: bundler >= 4.0 dropped the --path flag for binstubs, which breaks autoproj_bootstrap
+    # on Ruby >= 3.0 (where default_bundler_version returns nil and latest bundler is installed).
+    # Pinning bundler to 2.4.22 fixes compatibility with the current bootstrap script.
+    wget rock-robotics.org/autoproj_bootstrap
+
+    # Patch autoproj_bootstrap for bundler >= 4.x compatibility.
+    # The script's default_bundler_version only covers Ruby < 3.0 and returns nil
+    # for Ruby >= 3.0 (e.g. 3.2 used here), causing bundler 4.x to be installed.
+    # Bundler 4.0 dropped the --path flag for 'bundle binstubs', which breaks the
+    # bootstrap. Extending the upper bound to 4.0.0 ensures bundler 2.4.22 is used.
+    # sed -i 's/< Gem::Version.new("3.0.0")/< Gem::Version.new("4.0.0")/' autoproj_bootstrap
+
+    ruby autoproj_bootstrap --bundler-version=2.9.2 git $BUILDCONF branch=$BRANCH --no-color --no-interactive
+    source env.sh
+    aup --no-color --no-interactive
+    amake
+
+    echo -e "\e[32m[INFO] workspace successfully initialized.\e[0m"
+else 
+    echo -e "\e[31m[ERROR] workspace already initialized.\e[0m"
+    exit 1
+fi
 
 # ROS autoproj BUILDCONF EXAMPLE
 #
